@@ -1,31 +1,33 @@
-import hashlib
+def index_by_newlines(a, sign):
+    return [ [i, v, sign] for i,v in enumerate(a.split("\n")) ]
 
-def hdiff(seq, ind):
-    return [ [i, ind, hashlib.sha1(v).hexdigest(), v] for i,v in enumerate(seq) ]
 
-def hsort(i):
-    return i[2]
+def diff(a, b):
+    # separate left and right into arrays indexed by line
+    a = index_by_newlines(a, '-')
+    b = index_by_newlines(b, '+')
 
-def isort(i):
-    return i[0]
+    # remove matching lines
+    for va in a[:]:
+        for vb in b:
+            if va[1] == vb[1]:
+                a.remove(va)
+                b.remove(vb)
+                continue
 
-def diff(left, right):
-    hs = hdiff(left, '-') + hdiff(right, '+')
+    # print in line index order with right or left symbols, + or -
+    c = a + b
+    c.sort(key=lambda v: v[0])
+    return c
 
-    rows_by_hash = {}
-    for h in hs:
-        rows_by_hash.setdefault(h[2], []).append(h)
+a = """a
+b
+c"""
 
-    single_rows = []
-    for h in rows_by_hash:
-        if len(rows_by_hash[h]) == 1:
-           single_rows += rows_by_hash[h]
+b = """a
+a
+x
+b"""
 
-    single_rows.sort(key=isort)
-    return [ l[1] + l[3] for l in single_rows ]
-
-left = 'a b c a d e f'.split()
-right = 'x a b c'.split()
-print(left)
-print(right)
-print(diff(left, right))
+for v in diff(a,b):
+    print(v[2] + v[1])
